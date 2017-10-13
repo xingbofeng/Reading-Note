@@ -84,4 +84,32 @@ mysql> set session transaction isolation level READ COMMITTED;
 `MySQL`也支持`LOCK TABELS`和`UNLOCK TABLES`语句，这是在服务器层实现的，和存储引擎无关。如果应用需要用到事务，还是应该选择事务型存储引擎，如`InnoDB`。
 
 ## 多版本并发控制（MVCC）
-`MVCC`的实现：是通过保存数据在某个时间点的快照来实现的。
+`MVCC`的实现：是通过保存数据在某个时间点的快照来实现的。也就是说，不管需要执行多长时间，每个事务看到的数据都是一致的。对于`InnoDB`的`MVVC`，是通过在每行记录后面保存的两个隐藏的列来实现的。这两个列，一个保存了行的创建时间，一个保存了行的过期时间（或删除时间）。当然存储的不是实际的时间值，而是系统版本号。
+
+## MySQL的存储引擎
+`MySQL`默认的事务型引擎是`InnoDB`，它是最重要、使用最广泛的存储引擎。它被设计用来处理大量的短期事务，短期事务大部分情况下是正常提交的，很少会回滚。
+
+在`MySQL 5.1`及之前的版本，默认的存储引擎是`MyISAM`，它是非事务型引擎，不支持事务和行级锁。
+
+### 关于如何转换表的引擎
+#### alert table
+将表从一个引擎修改为另一个引擎最简单的方法是使用`alert table`语句，下面的语句将`mytable`的引擎修改为`InnoDB`。
+
+```sql
+mysql> alert table mytable ENGINE = InnoDB;
+```
+
+上述语法可以适用于任何存储引擎，但是有一个问题是需要执行很长时间。`MySQL`会按行将数据从原表复制到新的一张表中，在复制期间可能会消耗系统所有的`I/O`能力，同时在原表上会加上读锁。所以在繁忙的表上执行此操作要特别小心。
+
+#### 导入与导出
+可以使用`mysqldump`工具将数据导出到文件。然后修改文件中`create table`语句的存储引擎选项，同时修改表名，因为同一个数据库不能存在相同表名。
+
+#### 创建和查询
+使用`insert ... select`语法：
+
+```sql
+mysql> create table innodb_table like myisam_table;
+mysql> alert table innodb_table ENGINE = InnoDB;
+mysql> insert into innodb_table select * from myisam_table;
+```
+
