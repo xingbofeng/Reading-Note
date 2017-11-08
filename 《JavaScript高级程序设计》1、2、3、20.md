@@ -172,3 +172,249 @@
 * `<noscript>`元素中的内容只有在浏览器不支持脚本或脚本被禁用的情况下才会显示出来。
 
 # 第三章：基本概念
+## 语法
+## 关键字和保留字
+## 变量
+* 在函数体内，不用`var`声明的变量会声明为全局变量。
+* 严格模式下，不能定义名为`eval`或`arguments`的变量。
+
+## 数据类型
+* 对一个值使用`typeof`操作符，可能返回下列某个字符串："undefined"、"boolean"、"string"、"number"、"object"、"function"。
+* 声明变量后默认取得`undefined`值，而没声明变量直接使用则会抛出一个错误。
+
+```javascript
+var message;
+
+console.log(message); // undefined
+console.log(age); // 报错
+```
+
+* `null`表示空对象指针，对`null`使用`typeof`会返回"object"
+* `Boolean`类型的隐式转换
+* 关于数值范围，最小的小数值为`Number.MIN_VALUE`，即`5e-324`，最大数值为`Number.MAX_VALUE`，即`1.7976931348623157e+308`。一旦运算结果得到了超过`Number.MAX_VALUE`的值，则这个数值自动被转换成`Infinity`值，具体来说，如果这个数值是负数，则会被转化为`-Infinity`。
+* 判断一个数是否是有穷的，可以用`isFinite()`函数。这个函数在参数位于最小与最大数值之间时会返回`true`。
+* `NaN`与任何值都不想等，包括自身。判断一个值是否非数值，或者是否能够被转化为数值。
+
+```javascript
+console.log(NaN == NaN); // false
+console.log(isNaN(NaN)); // true
+console.log(isNaN(10)); // false，因为10是一个数值
+console.log(isNaN('10')); // false，因为字符串10可以转换成数值10
+console.log(isNaN('blue')); // true，因为字符串blue不能被转换成数值
+console.log(isNaN(true)); // false，因为true可以转化为数值1
+```
+
+* 数值转换有三个函数可以把非数值转换为数值：`Number()`、`parseInt()`、`parseFloat()`。其中`Number()`函数会忽略字符串前面的`0`、`0x`等，直接以十进制来转换。如果是`null`值，转为`0`。如果是`undefined`，转为`NaN`。
+
+* `Number()`函数对进制不敏感，而`parseInt()`对进制敏感。并且`parseInt()`可以带第二个参数，比如带上`16`的时候，可以不指定`0x`。
+* `parseFloat()`只解析十进制值，会忽略前面的`0`。
+
+```javascript
+console.log(parseInt('10', 2)); // 2
+console.log(parseInt('10', 8)); // 8
+console.log(parseInt('10', 10)); // 10
+console.log(parseInt('10', 16)); // 16
+console.log(parseInt('AF', 16)); // 175
+console.log(parseInt('AF')); // NaN（因为这里按照十进制解析了）
+console.log(parseFloat('0908.5')); // 908.5（忽略前面的0）
+```
+
+* 数值、布尔值、对象和字符串值都有`toString()`方法，但`null`和`undefined`没有`toString()`方法。对于数字来说，`toString()`，可以指定进制。
+
+```javascript
+var num = 10;
+
+console.log(num.toString()); // "10"
+console.log(num.toString(2)); // "1010"
+console.log(num.toString(8)); // "12"
+console.log(num.toString(10)); // "10"
+console.log(num.toString(16)); // "a"
+```
+
+* 在不知道要转换的值是不是`null`或`undefined`的情况下，还可以使用转型函数`String()`，这个函数能够将任何类型的值转换为字符串。`String()`函数把`null`转化为字符串"null"，把`undefined`转化为字符串"undefined"，对于其它有`toString()`方法的类型则调用`toString()`方法。
+
+## 操作符
+* `>>>`三个`>`符号表示无符号的右移。
+
+## 语句
+* `label`语句，其基本语法为`label: statement`，其可以在代码中添加标签。一般可以在将来与`break`和`continue`语句联合使用：
+
+```javascript
+var num = 0;
+outermost:
+  for (var i = 0; i < 10; i++) {
+    for (var j = 0; j < 10; j++) {
+      if (i == 5 && j == 5) {
+        break outermost; // 退出指定位置的循环
+      }
+      num++;
+    }
+  }
+
+console.log(num); // 55
+```
+
+```javascript
+var num = 0;
+outermost:
+  for (var i = 0; i < 10; i++) {
+    for (var j = 0; j < 10; j++) {
+      if (i == 5 && j == 5) {
+        continue outermost; // 跳到指定位置的循环
+      }
+      num++;
+    }
+  }
+
+console.log(num); // 95
+```
+
+* `with`语句的作用是把代码的作用域设置到一个特定的对象中。定义`with`语句的目的主要是为了简化多次编写同一个对象的工作。
+
+```javascript
+var qs = location.search.substring(1);
+var hostName = location.hostName;
+var url = location.href;
+```
+
+上面的代码都用了`location`对象，如果使用`with`语句，可以把上面的代码改下成以下形式：
+
+```javascript
+with(location) {
+  var qs = search.substring(1);
+  var hostName = hostName;
+  var url = href;
+}
+```
+
+> 大量使用with语句会导致性能下降，不建议使用with语句，严格模式下，不允许使用with语句。
+
+## 函数
+> 注意，JavaScript参数没有重载，不过可以通过检查传入函数参数的类型和数量并作出不同的反应，可以模仿方法的重载。
+
+# 第二十章：JSON
+## 语法
+* 最简单的`JSON`数据形式就是简单值，如数字、字符串、布尔值、`null`都属于`JSON`。
+* `JSON`对象属性名必须用双引号，字符串必须用双引号。
+* `JSON.stringify()`可以过滤结果，还可以字符串缩进，分别为其传入的第二个参数和第三个参数。
+
+```javascript
+var book = {
+  "title": "Professional JavaScript",
+  "authors": [
+    "Nicholas C. Zakas"
+  ],
+  "edition": 3,
+  "year": 2011
+};
+
+var jsonText = JSON.stringify(book, ["title", "edition"]);
+console.log(jsonText); // "{"title":"Professional JavaScript","edition":3}"
+```
+
+第二个参数还可以是函数，这个函数作为过滤器：
+
+```javascript
+var book = {
+  "title": "Professional JavaScript",
+  "authors": [
+    "Nicholas C. Zakas"
+  ],
+  "edition": 3,
+  "year": 2011
+};
+
+var jsonText = JSON.stringify(book, function(key, value) {
+  switch(key) {
+    case "authors":
+      return value.join(",");
+    case "year":
+      return 5000;
+    case "edition":
+      return undefined;
+    default:
+      return value;
+  }
+});
+console.log(jsonText); // {"title":"Professional JavaScript","authors":"Nicholas C. Zakas","year":5000}
+```
+
+> 注意其中的switch语句不要忘记default！
+
+第三个参数指定字符串缩进：
+
+```javascript
+var book = {
+  "title": "Professional JavaScript",
+  "authors": [
+    "Nicholas C. Zakas"
+  ],
+  "edition": 3,
+  "year": 2011
+};
+
+var jsonText = JSON.stringify(book, null, 4);
+console.log(jsonText);
+
+/* 结果如下，缩进四个空格：
+
+{
+    "title": "Professional JavaScript",
+    "authors": [
+        "Nicholas C. Zakas"
+    ],
+    "edition": 3,
+    "year": 2011
+}
+
+*/
+```
+
+* 为对象显式定义`toJSON()`方法。
+
+```javascript
+var book = {
+  "title": "Professional JavaScript",
+  "authors": [
+    "Nicholas C. Zakas"
+  ],
+  "edition": 3,
+  "year": 2011,
+  toJSON: function() {
+    return this.title;
+  }
+};
+
+var jsonText = JSON.stringify(book);
+console.log(jsonText);
+```
+
+一旦对象显式定义了`toJSON()`方法，调用`JSON.stringify()`方法则是调用该方法，拿到返回值。如果在这里的`JSON.stringify()`方法还定义了第二个参数的过滤器函数和第三个参数字符串缩进，过滤器过滤的其实是`toJSON()`方法的返回值。
+
+* 解析选项：`JSON.parse()`也可以接受第二个参数，该参数是一个函数，称为还原函数。
+
+```javascript
+var book = {
+  "title": "Professional JavaScript",
+  "authors": [
+    "Nicholas C. Zakas"
+  ],
+  "edition": 3,
+  "year": 2011,
+  releaseDate: new Date(2011, 11, 1)
+};
+
+var jsonText = JSON.stringify(book);
+
+var bookCopy = JSON.parse(jsonText, function(key, value) {
+  if (key == "releaseDate") {
+    return new Date(value);
+  } else {
+    return value;
+  }
+});
+
+console.log(bookCopy.releaseDate.getFullYear());
+```
+
+> 如果没有还原函数，bookCopy中就无法还原Date对象，也就无法调用getFullYear()方法。还原函数的作用在此。
